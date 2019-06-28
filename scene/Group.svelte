@@ -2,12 +2,13 @@
 	import { writable } from 'svelte/store';
 	import { get_scene, get_parent, set_parent } from '../internal/index.mjs';
 	import * as mat4 from 'gl-matrix/mat4';
-	import * as quat from 'gl-matrix/quat';
+	import * as quatGl from 'gl-matrix/quat';
 
 	export let location = [0, 0, 0];
-	export let lookAt;
+	export let lookAt = undefined;
 	export let up = [0, 1, 0];
 	export let rotation = [0, 0, 0]; // TODO make it possible to set a quaternion as a prop?
+	export let quat = undefined;
 	export let scale = 1;
 
 	const scene = get_scene();
@@ -17,7 +18,7 @@
 	const ctm = writable(null);
 
 	let matrix = mat4.create();
-	let quaternion = quat.create();
+	let quaternion = quatGl.create();
 	const world_position = new Float32Array(matrix.buffer, 12 * 4, 3);
 
 	$: scale_array = typeof scale === 'number' ? [scale, scale, scale] : scale;
@@ -31,8 +32,9 @@
 
 		$ctm = matrix;
 	} else {
-		quaternion = quat.fromEuler(quaternion || quat.create(), ...rotation);
+		quaternion = typeof quat !== 'undefined' ? quat : quatGl.fromEuler(quaternion || quatGl.create(), ...rotation);
 		matrix = mat4.fromRotationTranslationScale(matrix, quaternion, location, scale_array);
+
 		$ctm = mat4.multiply($ctm || mat4.create(), $parent_ctm, matrix);
 	}
 

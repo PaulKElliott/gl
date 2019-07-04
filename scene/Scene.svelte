@@ -374,6 +374,21 @@
 	};
 
 	$: ($width, $height, update_dimensions());
+
+	let mediaQuery;
+
+	const onPixelRatioOrZoom = () => {
+		update_dimensions();
+		let mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
+		mediaQuery = matchMedia(mqString)
+		mediaQuery.addEventListener("change", onPixelRatioOrZoom, {once: true});
+	};
+	onPixelRatioOrZoom();
+	
+	onDestroy(() => {
+		mediaQuery.removeEventListener("change", onPixelRatioOrZoom);
+	});
+
 </script>
 
 <style>
